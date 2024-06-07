@@ -87,7 +87,9 @@ def fetch_buildings():
             if not first:
                 f.write(',\n')
             first = False
+            f.write('{"type": "Feature", "geometry": ')
             f.write(row[3])  # Access the geometry field from the row
+            f.write(', "properties": {}}')
         f.write('\n]}')
     print('Buildings data written to amsterdam_buildings.geojson')
 
@@ -114,7 +116,9 @@ def fetch_transportation():
             if not first:
                 f.write(',\n')
             first = False
+            f.write('{"type": "Feature", "geometry": ')
             f.write(row[2])  # Access the geometry field from the row
+            f.write(', "properties": {}}')
         f.write('\n]}')
     print('Transportation data written to amsterdam_transportation.geojson')
 
@@ -140,7 +144,9 @@ def fetch_places():
             if not first:
                 f.write(',\n')
             first = False
+            f.write('{"type": "Feature", "geometry": ')
             f.write(row[3])  # Access the geometry field from the row
+            f.write(', "properties": {}}')
         f.write('\n]}')
     print('Places data written to amsterdam_places.geojson')
 
