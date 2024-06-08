@@ -1,34 +1,54 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Amsterdam Transportation Map</title>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amsterdam Transportation Map</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <style>
         #map {
-            height: 100vh;
-            width: 100wh;
-            background: white; /* Set background to white */
+            height: 80vh;
+            width: 100%;
         }
     </style>
 </head>
 <body>
-    <div id="map"></div>
+    <div class="container">
+        <div class="row mt-4">
+            <div class="col text-center">
+                <h1>Evil Reges Safe Path</h1>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col">
+                <div id="map"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         // Initialize the map
         var map = L.map('map', {
             center: [52.3676, 4.9041], // Center map on Amsterdam
-            zoom: 16, // Set initial zoom level
+            zoom: 30, // Set initial zoom level
             layers: [], // No default tile layer
-            dragging: false, // Disable dragging
+            dragging: true, // Enable dragging
             touchZoom: false, // Disable touch zoom
+            scrollWheelZoom: false, // Disable zoom on scroll
             doubleClickZoom: false // Disable double click zoom
         });
     
         // Fetch the GeoJSON data and add it to the map
-        fetch('amsterdam_transportation.geojson')
+        fetch('simplified_transport.json')
             .then(function(response) {
                 if (!response.ok) {
                     throw new Error('Network response was not ok ' + response.statusText);
