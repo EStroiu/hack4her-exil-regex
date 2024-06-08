@@ -6,8 +6,10 @@ import graph
 app = Flask(__name__, static_folder='', static_url_path='')
 lamp_posts = graph.load_lamp_posts('amsterdam_street_lights.geojson')
 lamp_post_index = graph.create_lamp_post_index(lamp_posts)
+districts = graph.load_crime_polygons('amsterdam_wijken_normalized.geojson')
 g_light = graph.graph_light('simplified_transport.json', lamp_posts, lamp_post_index)
 g_default = graph.graph_default('simplified_transport.json')
+g_district = graph.graph_district('simplified_transport.json', districts)
 
 @app.route('/')
 def index():
@@ -25,11 +27,13 @@ def find_light_path():
 
     path_light = graph.find_shortest_path(g_light, start, end)
     path_default = graph.find_shortest_path(g_default, start, end)
+    path_district = graph.find_shortest_path(g_district, start, end)
 
     ret_light = geojson.Feature(geometry=LineString(path_light))
     ret_default = geojson.Feature(geometry=LineString(path_default))
-
-    return jsonify((ret_light, ret_default))
+    ret_district = geojson.Feature(geometry=LineString(path_district))
+    
+    return jsonify((ret_light, ret_default, ret_district))
 
 @app.route('/rate-wijk', methods=['POST'])
 def rate_wijk():

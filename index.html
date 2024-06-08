@@ -226,11 +226,15 @@
             .then(response => response.json())
             .then(data => {
                 // Clear any existing paths
-                if (window.pathLayer) {
-                    map.removeLayer(window.pathLayer);
+                if (!window.pathLayers) {
+                    window.pathLayers = [];
+                }
+                while (window.pathLayers.length) {
+                    let layer = window.pathLayers.pop();
+                    map.removeLayer(layer);
                 }
 
-                window.pathLayer = L.geoJSON(data[0], {
+                let pathLayer1 = L.geoJSON(data[0], {
                     style: function (feature) {
                         return {
                             color: 'black',
@@ -238,9 +242,9 @@
                         };
                     }
                 }).addTo(map);
+                window.pathLayers.push(pathLayer1);
 
-                // Add the new path
-                window.pathLayer = L.geoJSON(data[1], {
+                let pathLayer2 = L.geoJSON(data[1], {
                     style: function (feature) {
                         return {
                             color: 'red',
@@ -248,6 +252,17 @@
                         };
                     }
                 }).addTo(map);
+                window.pathLayers.push(pathLayer2);
+
+                let pathLayer3 = L.geoJSON(data[2], {
+                    style: function (feature) {
+                        return {
+                            color: 'blue',
+                            weight: 4
+                        };
+                    }
+                }).addTo(map);
+                window.pathLayers.push(pathLayer3);
             })
             .catch(error => {
                 console.error('Error:', error);
