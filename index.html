@@ -17,9 +17,36 @@
         #coordinates {
             white-space: nowrap; /* To prevent line breaks */
         }
+        #loadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: none; /* Hidden by default */
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        #loadingSpinner {
+            border: 16px solid #f3f3f3; /* Light grey */
+            border-top: 16px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            animation: spin 2s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
+    <div id="loadingOverlay">
+        <div id="loadingSpinner"></div>
+    </div>
     <div class="container">
         <div class="row mt-4">
             <div class="col text-center">
@@ -44,13 +71,13 @@
                 <p>End Point: <span id="endPointDisplay">Not set</span></p>
             </div>
             <div class="col">
-                <button class="btn btn-primary" onclick="startPath()">Set Start Point</button>
+                <button class="btn btn-primary" id="startButton" onclick="startPath()">Set Start Point</button>
             </div>
             <div class="col">
-                <button class="btn btn-primary" onclick="endPath()">Set End Point</button>
+                <button class="btn btn-primary" id="endButton" onclick="endPath()">Set End Point</button>
             </div>
             <div class="col">
-                <button class="btn btn-primary" onclick="findPath()">Find Path</button>
+                <button class="btn btn-primary" id="findButton" onclick="findPath()">Find Path</button>
             </div>
         </div>
     </div>
@@ -112,12 +139,39 @@
             });
         }
 
+        // Show loading overlay
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        // Hide loading overlay
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        // Disable buttons
+        function disableButtons() {
+            document.getElementById('startButton').disabled = true;
+            document.getElementById('endButton').disabled = true;
+            document.getElementById('findButton').disabled = true;
+        }
+
+        // Enable buttons
+        function enableButtons() {
+            document.getElementById('startButton').disabled = false;
+            document.getElementById('endButton').disabled = false;
+            document.getElementById('findButton').disabled = false;
+        }
+
         // Find Path function
         function findPath() {
             if (!startPoint || !endPoint) {
                 alert('Please set start and end points first.');
                 return;
             }
+
+            showLoading();
+            disableButtons();
 
             fetch('/find-path', {
                 method: 'POST',
@@ -150,6 +204,10 @@
             })
             .catch(error => {
                 console.error('Error:', error);
+            })
+            .finally(() => {
+                hideLoading();
+                enableButtons();
             });
         }
 
