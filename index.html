@@ -79,6 +79,12 @@
             <div class="col">
                 <button class="btn btn-primary" id="findButton" onclick="findPath()">Find Path</button>
             </div>
+            <div class="col">
+                <button class="btn btn-secondary" id="toggleLightsButton" onclick="toggleStreetLights()">Toggle Street Lights</button>
+            </div>
+            <div class="col">
+                <button class="btn btn-secondary" id="togglePolygonsButton" onclick="togglePolygons()">Toggle Wijken Polygons</button>
+            </div>
         </div>
     </div>
 
@@ -88,9 +94,13 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <!-- Load the GeoJSON data -->
+    <script src="amsterdam_street_lights.geojson"></script> <!-- Ensure you provide the correct path -->
+    <script src="amsterdam_wijken_normalized.geojson"></script> <!-- Ensure you provide the correct path -->
     <script>
-        var map, amsterdamBounds, startPoint, endPoint, startMarker, endMarker;
+        var map, amsterdamBounds, startPoint, endPoint, startMarker, endMarker, streetLightsLayer, wijkenPolygonsLayer;
 
+        // Custom marker icons
         var startIcon = L.icon({
             iconUrl: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
             iconSize: [32, 32],
@@ -237,6 +247,101 @@
                 hideLoading();
                 enableButtons();
             });
+        }
+
+        // Interpolate color between green and red
+        function getColor(d) {
+            return d > 1 ? '#FF0000' : // Red
+                   d > 0.75 ? '#FF4000' :
+                   d > 0.5 ? '#FF8000' :
+                   d > 0.25 ? '#FFBF00' :
+                   '#00FF00'; // Green
+        }
+
+        // Submit Wijk Rating function
+        function submitRating(wijk, rating) {
+            fetch('/rate-wijk', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    wijk: wijk,
+                    rating: rating
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Rating submitted successfully:', data);
+            })
+            .catch(error => {
+                console.error('Error submitting rating:', error);
+            });
+        }
+
+        // Toggle Street Lights function
+        function toggleStreetLights() {
+            if (streetLightsLayer) {
+                map.removeLayer(streetLightsLayer);
+                streetLightsLayer = null;
+            } else {
+                fetch('amsterdam_street_lights.geojson') // Ensure you provide the correct path
+                    .then(response => response.json())
+                    .then(data => {
+                        streetLightsLayer = L.geoJSON(data, {
+                            pointToLayer: function (feature, latlng) {
+                                return L.circleMarker(latlng, {
+                                    radius: 3,
+                                    fillColor: 'yellow',
+                                    color: 'yellow',
+                                    weight: 1,
+                                    opacity: 1,
+                                    fillOpacity: 0.8
+                                });
+                            }
+                        }).addTo(map);
+                    })
+                    .catch(error => {
+                        console.error('Error loading street lights:', error);
+                    });
+            }
+        }
+
+        // Toggle Wijken Polygons function
+        function togglePolygons() {
+            if (wijkenPolygonsLayer) {
+                map.removeLayer(wijkenPolygonsLayer);
+                wijkenPolygonsLayer = null;
+            } else {
+                fetch('amsterdam_wijken_normalized.geojson') // Ensure you provide the correct path
+                    .then(response => response.json())
+                    .then(data => {
+                        wijkenPolygonsLayer = L.geoJSON(data, {
+                            onEachFeature: function (feature, layer) {
+                                if (feature.properties && feature.properties.Wijk && feature.properties.CriminalityScore) {
+                                    var popupContent = '<strong>Wijk:</strong> ' + feature.properties.Wijk + '<br><strong>Criminality Score:</strong> ' + feature.properties.CriminalityScore;
+                                    popupContent += '<br><strong>Rate this Wijk:</strong> <select id="rating-' + feature.properties.Wijk + '">';
+                                    for (var i = 1; i <= 10; i++) {
+                                        popupContent += '<option value="' + i + '">' + i + '</option>';
+                                    }
+                                    popupContent += '</select> <button onclick="submitRating(\'' + feature.properties.Wijk + '\', document.getElementById(\'rating-' + feature.properties.Wijk + '\').value)">Submit</button>';
+                                    layer.bindPopup(popupContent);
+                                }
+                            },
+                            style: function (feature) {
+                                return {
+                                    color: getColor(feature.properties.CriminalityScore),
+                                    weight: 2,
+                                    opacity: 1,
+                                    fillOpacity: 0.6
+                                };
+                            }
+                        }).addTo(map);
+                    })
+                    .catch(error => {
+                        console.error('Error loading wijken polygons:', error);
+                    });
+            }
         }
 
         // Load the map when the DOM is ready
