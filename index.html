@@ -11,7 +11,7 @@
     <style>
         #map {
             height: 65vh;
-            width: 98%;
+            width: 98wh;
         }
         #coordinates {
             white-space: nowrap; /* To prevent line breaks */
@@ -22,7 +22,7 @@
     <div class="container">
         <div class="row mt-4">
             <div class="col text-center">
-                <h1>Evil Regex Safe Path</h1>
+                <h3>Evil Regex Safe Path</h3>
             </div>
         </div>
         <div class="row mt-4">
@@ -89,18 +89,17 @@
 
             // Add an event listener to display coordinates on mouse move
             map.on('mousemove', function (e) {
-                var lat = e.latlng.lat.toFixed(5);
-                var lng = e.latlng.lng.toFixed(5);
+                var lat = e.latlng.lat.toFixed(6);
+                var lng = e.latlng.lng.toFixed(6);
                 document.getElementById('coordinates').innerHTML = 'Latitude: ' + lat + ', Longitude: ' + lng;
             });
         }
-
 
         // Set Start Point function
         function startPath() {
             map.once('click', function (e) {
                 startPoint = e.latlng; // Check if e.latlng is defined
-                document.getElementById('startPointDisplay').innerText = startPoint.lat + ', ' + startPoint.lng; // Update the display
+                document.getElementById('startPointDisplay').innerText = startPoint.lat.toFixed(6) + ', ' + startPoint.lng.toFixed(6); // Update the display
             });
         }
 
@@ -108,7 +107,7 @@
         function endPath() {
             map.once('click', function (e) {
                 endPoint = e.latlng; // Check if e.latlng is defined
-                document.getElementById('endPointDisplay').innerText = endPoint.lat + ', ' + endPoint.lng; // Update the display
+                document.getElementById('endPointDisplay').innerText = endPoint.lat.toFixed(6) + ', ' + endPoint.lng.toFixed(6); // Update the display
             });
         }
 
@@ -125,25 +124,33 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    start_lat: startPoint.lat,
-                    start_lng: startPoint.lng,
-                    end_lat: endPoint.lat,
-                    end_lng: endPoint.lng
+                    start_lat: startPoint.lat.toFixed(6),
+                    start_lng: startPoint.lng.toFixed(6),
+                    end_lat: endPoint.lat.toFixed(6),
+                    end_lng: endPoint.lng.toFixed(6)
                 })
             })
             .then(response => response.json())
             .then(data => {
-                // Handle the response from the server
-                alert(data.message);
+                // Clear any existing path
+                if (window.pathLayer) {
+                    map.removeLayer(window.pathLayer);
+                }
+
+                // Add the new path
+                window.pathLayer = L.geoJSON(data, {
+                    style: function (feature) {
+                        return {
+                            color: 'red',
+                            weight: 4
+                        };
+                    }
+                }).addTo(map);
             })
             .catch(error => {
                 console.error('Error:', error);
             });
         }
-
-
-
-        // Set the start point
 
         // Load the map when the DOM is ready
         document.addEventListener('DOMContentLoaded', function () {
