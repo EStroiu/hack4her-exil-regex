@@ -24,5 +24,16 @@ def find_path():
 
     return jsonify(geojson.Feature(geometry=LineString(path)))
 
+@app.route('/rate-wijk', methods=['POST'])
+def rate_wijk():
+    wijk = request.json.get('wijk')
+    rating = request.json.get('rating')
+
+    # Process the rating (e.g., store it in a database or file)
+    # For now, we'll just print it
+    print(f"Received rating for {wijk}: {rating}")
+
+    return jsonify({"message": "Rating submitted successfully"})
+
 if __name__ == '__main__':
     app.run(debug=True)

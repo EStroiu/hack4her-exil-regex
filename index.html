@@ -80,10 +80,10 @@
                 <button class="btn btn-primary" id="findButton" onclick="findPath()">Find Path</button>
             </div>
             <div class="col">
-                <button class="btn btn-secondary" id="toggleLightsButton" onclick="toggleStreetLights()">Toggle Street Lights</button>
+                <button class="btn btn-secondary" id="toggleLightsButton" onclick="toggleStreetLights()">Street Lights</button>
             </div>
             <div class="col">
-                <button class="btn btn-secondary" id="togglePolygonsButton" onclick="togglePolygons()">Toggle Wijken Polygons</button>
+                <button class="btn btn-secondary" id="togglePolygonsButton" onclick="togglePolygons()">Wijken</button>
             </div>
         </div>
     </div>
@@ -319,8 +319,8 @@
                         wijkenPolygonsLayer = L.geoJSON(data, {
                             onEachFeature: function (feature, layer) {
                                 if (feature.properties && feature.properties.Wijk && feature.properties.CriminalityScore) {
-                                    var popupContent = '<strong>Wijk:</strong> ' + feature.properties.Wijk + '<br><strong>Criminality Score:</strong> ' + feature.properties.CriminalityScore;
-                                    popupContent += '<br><strong>Rate this Wijk:</strong> <select id="rating-' + feature.properties.Wijk + '">';
+                                    var popupContent = '<strong>Wijk:</strong> ' + feature.properties.Wijk + '<br><strong>Criminality Score:</strong> ' + feature.properties.CriminalityScore.toFixed(4);
+                                    popupContent += '<br><strong>How safe is this Wijk:</strong> <select id="rating-' + feature.properties.Wijk + '">';
                                     for (var i = 1; i <= 10; i++) {
                                         popupContent += '<option value="' + i + '">' + i + '</option>';
                                     }
