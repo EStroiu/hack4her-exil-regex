@@ -1,8 +1,11 @@
+# This script outputs a geojson file containing the amsterdam wijken with their corresponding criminality scores.
+
 import json
 import pandas as pd
 
 raw_wijken_geojson = 'amsterdam_wijken_raw.geojson'
 criminality_csv = 'criminaliteit-wijken-2023-3.csv'
+output_geojson = 'amsterdam_wijken.geojson'
 
 # Load the GeoJSON file
 with open(raw_wijken_geojson, 'r') as f:
@@ -71,7 +74,7 @@ for feature in geojson_data['features']:
     feature['properties']['CriminalityScore'] = criminality_score
 
 # Save the updated GeoJSON to a new file
-with open('amsterdam_wijken.geojson', 'w') as f:
+with open(output_geojson, 'w') as f:
     json.dump(geojson_data, f, indent=2)
 
-print("Criminality scores added to GeoJSON and saved to 'amsterdam_wijken.geojson'")
+print(f"Criminality scores added to GeoJSON and saved to '{output_geojson}'")
