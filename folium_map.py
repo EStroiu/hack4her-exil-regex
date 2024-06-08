@@ -53,16 +53,19 @@ G = create_graph(ams_data)
 start_coords = (4.8677, 52.35668)  
 end_coords = (4.86459, 52.33480)   
 
+def get_closest_node(G, point):
+    distances = {node: Point(node).distance(Point(point)) for node in G.nodes}
+    closest_node = min(distances, key=distances.get)
+    
+    return closest_node
 
-shortest_path = find_shortest_path(G, start_coords, end_coords)
+shortest_path = find_shortest_path(G, get_closest_node(G, start_coords), get_closest_node(G, end_coords))
 shortest_path_geojson = path_to_geojson(shortest_path)
 
 folium.GeoJson(shortest_path_geojson, name='shortest_path', 
                style_function=lambda x: {'color': 'red', 'weight': 3}).add_to(ams_map)
 
-# Display
-ams_map.save('ams_map.html')
-webbrowser.open('ams_map.html')
+
 
 
 
