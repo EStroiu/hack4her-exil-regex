@@ -89,7 +89,21 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
-        var map, amsterdamBounds, startPoint, endPoint;
+        var map, amsterdamBounds, startPoint, endPoint, startMarker, endMarker;
+
+        var startIcon = L.icon({
+            iconUrl: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+            popupAnchor: [0, -32]
+        });
+
+        var endIcon = L.icon({
+            iconUrl: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+            popupAnchor: [0, -32]
+        });
 
         // Initialize the map
         function initMap() {
@@ -126,16 +140,30 @@
         // Set Start Point function
         function startPath() {
             map.once('click', function (e) {
-                startPoint = e.latlng; // Check if e.latlng is defined
-                document.getElementById('startPointDisplay').innerText = startPoint.lat.toFixed(6) + ', ' + startPoint.lng.toFixed(6); // Update the display
+                startPoint = e.latlng;
+                document.getElementById('startPointDisplay').innerText = startPoint.lat.toFixed(6) + ', ' + startPoint.lng.toFixed(6);
+
+                // Add or move the start marker
+                if (startMarker) {
+                    startMarker.setLatLng(startPoint);
+                } else {
+                    startMarker = L.marker(startPoint, {icon: startIcon}).addTo(map);
+                }
             });
         }
 
         // Set End Point function
         function endPath() {
             map.once('click', function (e) {
-                endPoint = e.latlng; // Check if e.latlng is defined
-                document.getElementById('endPointDisplay').innerText = endPoint.lat.toFixed(6) + ', ' + endPoint.lng.toFixed(6); // Update the display
+                endPoint = e.latlng;
+                document.getElementById('endPointDisplay').innerText = endPoint.lat.toFixed(6) + ', ' + endPoint.lng.toFixed(6);
+
+                // Add or move the end marker
+                if (endMarker) {
+                    endMarker.setLatLng(endPoint);
+                } else {
+                    endMarker = L.marker(endPoint, {icon: endIcon}).addTo(map);
+                }
             });
         }
 
