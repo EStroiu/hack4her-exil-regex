@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
         #map {
-            height: 80vh;
+            height: 65vh;
             width: 98%;
         }
         #coordinates {
@@ -23,6 +23,11 @@
         <div class="row mt-4">
             <div class="col text-center">
                 <h1>Evil Regex Safe Path</h1>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col">
+                <p id="coordinates"></p>
             </div>
         </div>
         <div class="row mt-4">
@@ -45,11 +50,6 @@
             </div>
             <div class="col">
                 <button class="btn btn-primary" onclick="findPath()">Find Path</button>
-            </div>
-        </div>
-        <div class="row mt-4">
-            <div class="col">
-                <p id="coordinates"></p>
             </div>
         </div>
     </div>
