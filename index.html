@@ -1,92 +1,162 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <title>Amsterdam Map with Multiple Layers</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amsterdam Transportation Map</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <style>
         #map {
-            height: 100vh;
-            width: 100wh;
-            background: white; /* Set background to white */
+            height: 65vh;
+            width: 98wh;
+        }
+        #coordinates {
+            white-space: nowrap; /* To prevent line breaks */
         }
     </style>
 </head>
 <body>
-    <div id="map"></div>
+    <div class="container">
+        <div class="row mt-4">
+            <div class="col text-center">
+                <h3>Evil Regex Safe Path</h3>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col">
+                <p id="coordinates"></p>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col">
+                <div id="map"></div>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col">
+                <p>Start Point: <span id="startPointDisplay">Not set</span></p>
+            </div>
+            <div class="col">
+                <p>End Point: <span id="endPointDisplay">Not set</span></p>
+            </div>
+            <div class="col">
+                <button class="btn btn-primary" onclick="startPath()">Set Start Point</button>
+            </div>
+            <div class="col">
+                <button class="btn btn-primary" onclick="endPath()">Set End Point</button>
+            </div>
+            <div class="col">
+                <button class="btn btn-primary" onclick="findPath()">Find Path</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
+        var map, amsterdamBounds, startPoint, endPoint;
+
         // Initialize the map
-        var map = L.map('map', {
-            center: [52.3676, 4.9041], // Center map on Amsterdam
-            zoom: 16, // Set initial zoom level
-            layers: [], // No default tile layer
-            dragging: false, // Disable dragging
-            touchZoom: false, // Disable touch zoom
-            doubleClickZoom: false // Disable double click zoom
-        });
-    
-        // Fetch and add the transportation layer
-        fetch('amsterdam_transportation.geojson')
-            .then(function(response) {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok ' + response.statusText);
-                }
-                return response.json();
+        function initMap() {
+            amsterdamBounds = [
+                [52.28, 4.73], // Southwest coordinates [latitude, longitude]
+                [52.42, 5.03]  // Northeast coordinates [latitude, longitude]
+            ];
+
+            map = L.map('map', {
+                center: [52.3676, 4.9041], // Center map on Amsterdam
+                zoom: 16, // Set initial zoom level
+                layers: [], // No default tile layer
+                dragging: true, // Enable dragging
+                touchZoom: false, // Disable touch zoom
+                scrollWheelZoom: false, // Disable zoom on scroll
+                doubleClickZoom: false, // Disable double click zoom
+                minZoom: 12, // Limit the minimum zoom level to 10
+                maxBounds: amsterdamBounds // Limit dragging within the specified bounds
+            });
+
+            // Add a tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            // Add an event listener to display coordinates on mouse move
+            map.on('mousemove', function (e) {
+                var lat = e.latlng.lat.toFixed(6);
+                var lng = e.latlng.lng.toFixed(6);
+                document.getElementById('coordinates').innerHTML = 'Latitude: ' + lat + ', Longitude: ' + lng;
+            });
+        }
+
+        // Set Start Point function
+        function startPath() {
+            map.once('click', function (e) {
+                startPoint = e.latlng; // Check if e.latlng is defined
+                document.getElementById('startPointDisplay').innerText = startPoint.lat.toFixed(6) + ', ' + startPoint.lng.toFixed(6); // Update the display
+            });
+        }
+
+        // Set End Point function
+        function endPath() {
+            map.once('click', function (e) {
+                endPoint = e.latlng; // Check if e.latlng is defined
+                document.getElementById('endPointDisplay').innerText = endPoint.lat.toFixed(6) + ', ' + endPoint.lng.toFixed(6); // Update the display
+            });
+        }
+
+        // Find Path function
+        function findPath() {
+            if (!startPoint || !endPoint) {
+                alert('Please set start and end points first.');
+                return;
+            }
+
+            fetch('/find-path', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    start_lat: startPoint.lat.toFixed(6),
+                    start_lng: startPoint.lng.toFixed(6),
+                    end_lat: endPoint.lat.toFixed(6),
+                    end_lng: endPoint.lng.toFixed(6)
+                })
             })
-            .then(function(data) {
-                var transportationLayer = L.geoJson(data, {
+            .then(response => response.json())
+            .then(data => {
+                // Clear any existing path
+                if (window.pathLayer) {
+                    map.removeLayer(window.pathLayer);
+                }
+
+                // Add the new path
+                window.pathLayer = L.geoJSON(data, {
                     style: function (feature) {
                         return {
-                            color: 'blue',
-                            weight: 2
+                            color: 'red',
+                            weight: 4
                         };
-                    },
-                    onEachFeature: function (feature, layer) {
-                        if (feature.properties && feature.properties.name) {
-                            layer.bindPopup(feature.properties.name);
-                        }
-                    }
-                }).addTo(map);
-    
-                // Set the map view to the bounds of the transportation layer
-                map.fitBounds(transportationLayer.getBounds());
-            })
-            .catch(function(error) {
-                console.log('Error loading the transportation GeoJSON data: ', error);
-            });
-        
-        // Fetch and add the street lights layer
-        fetch('amsterdam_street_lights.geojson')
-            .then(function(response) {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok ' + response.statusText);
-                }
-                return response.json();
-            })
-            .then(function(data) {
-                var streetLightsLayer = L.geoJson(data, {
-                    pointToLayer: function (feature, latlng) {
-                        return L.circleMarker(latlng, {
-                            radius: 5,
-                            fillColor: "yellow",
-                            color: "yellow",
-                            weight: 1,
-                            opacity: 1,
-                            fillOpacity: 0.8
-                        });
-                    },
-                    onEachFeature: function (feature, layer) {
-                        if (feature.properties && feature.properties.name) {
-                            layer.bindPopup(feature.properties.name);
-                        }
                     }
                 }).addTo(map);
             })
-            .catch(function(error) {
-                console.log('Error loading the street lights GeoJSON data: ', error);
+            .catch(error => {
+                console.error('Error:', error);
             });
+        }
+
+        // Load the map when the DOM is ready
+        document.addEventListener('DOMContentLoaded', function () {
+            initMap();
+        });
     </script>
 </body>
 </html>
