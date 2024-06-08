@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, request
 import subprocess
 
 app = Flask(__name__, static_folder='', static_url_path='')
@@ -9,8 +9,17 @@ def index():
 
 @app.route('/find-path', methods=['POST'])
 def find_path():
-    # Execute the Python script
-    subprocess.run(['python3', 'script.py'])
+    
+    start_lat = request.json.get('start_lat')
+    start_lng = request.json.get('start_lng')
+    end_lat = request.json.get('end_lat')
+    end_lng = request.json.get('end_lng')
+
+    print('Starting point:', start_lat, start_lng)
+    print('Ending point:', end_lat, end_lng)
+
+    # subprocess.run(['python3', 'script.py'])
+    subprocess.run(['python3', 'script.py', str(start_lat), str(start_lng), str(end_lat), str(end_lng)])
     
     # Return a response
     return jsonify({'message': 'Python script executed successfully'})

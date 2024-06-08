@@ -95,19 +95,20 @@
             });
         }
 
+
         // Set Start Point function
         function startPath() {
             map.once('click', function (e) {
-                startPoint = e.latlng;
-                document.getElementById('startPointDisplay').innerText = startPoint.lat + ', ' + startPoint.lng;
+                startPoint = e.latlng; // Check if e.latlng is defined
+                document.getElementById('startPointDisplay').innerText = startPoint.lat + ', ' + startPoint.lng; // Update the display
             });
         }
 
         // Set End Point function
         function endPath() {
             map.once('click', function (e) {
-                endPoint = e.latlng;
-                document.getElementById('endPointDisplay').innerText = endPoint.lat + ', ' + endPoint.lng;
+                endPoint = e.latlng; // Check if e.latlng is defined
+                document.getElementById('endPointDisplay').innerText = endPoint.lat + ', ' + endPoint.lng; // Update the display
             });
         }
 
@@ -124,8 +125,10 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    startPoint: startPoint,
-                    endPoint: endPoint
+                    start_lat: startPoint.lat,
+                    start_lng: startPoint.lng,
+                    end_lat: endPoint.lat,
+                    end_lng: endPoint.lng
                 })
             })
             .then(response => response.json())
@@ -137,6 +140,10 @@
                 console.error('Error:', error);
             });
         }
+
+
+
+        // Set the start point
 
         // Load the map when the DOM is ready
         document.addEventListener('DOMContentLoaded', function () {
