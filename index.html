@@ -11,7 +11,10 @@
     <style>
         #map {
             height: 80vh;
-            width: 100%;
+            width: 98%;
+        }
+        #coordinates {
+            white-space: nowrap; /* To prevent line breaks */
         }
     </style>
 </head>
@@ -27,6 +30,11 @@
                 <div id="map"></div>
             </div>
         </div>
+        <div class="row mt-4">
+            <div class="col">
+                <p id="coordinates"></p>
+            </div>
+        </div>
     </div>
 
     <!-- Bootstrap JS -->
@@ -39,7 +47,7 @@
         // Initialize the map
         var map = L.map('map', {
             center: [52.3676, 4.9041], // Center map on Amsterdam
-            zoom: 30, // Set initial zoom level
+            zoom: 13, // Set initial zoom level
             layers: [], // No default tile layer
             dragging: true, // Enable dragging
             touchZoom: false, // Disable touch zoom
@@ -47,8 +55,20 @@
             doubleClickZoom: false // Disable double click zoom
         });
     
+        // Add a tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Add an event listener to display coordinates on mouse move
+        map.on('mousemove', function (e) {
+            var lat = e.latlng.lat.toFixed(5);
+            var lng = e.latlng.lng.toFixed(5);
+            document.getElementById('coordinates').innerHTML = 'Latitude: ' + lat + ', Longitude: ' + lng;
+        });
+        
         // Fetch the GeoJSON data and add it to the map
-        fetch('simplified_transport.json')
+        fetch('amsterdam_transportation.geojson')
             .then(function(response) {
                 if (!response.ok) {
                     throw new Error('Network response was not ok ' + response.statusText);
