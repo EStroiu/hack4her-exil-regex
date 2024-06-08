@@ -45,16 +45,23 @@
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         // Initialize the map
+        var amsterdamBounds = [
+            [52.28, 4.73], // Southwest coordinates [latitude, longitude]
+            [52.42, 5.03]  // Northeast coordinates [latitude, longitude]
+        ];
+
+        // Initialize the map
         var map = L.map('map', {
             center: [52.3676, 4.9041], // Center map on Amsterdam
-            zoom: 13, // Set initial zoom level
+            zoom: 16, // Set initial zoom level
             layers: [], // No default tile layer
             dragging: true, // Enable dragging
             touchZoom: false, // Disable touch zoom
             scrollWheelZoom: false, // Disable zoom on scroll
-            doubleClickZoom: false // Disable double click zoom
+            doubleClickZoom: false, // Disable double click zoom
+            minZoom: 12, // Limit the minimum zoom level to 10
+            maxBounds: amsterdamBounds // Limit dragging within the specified bounds
         });
-    
         // Add a tile layer
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
