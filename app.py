@@ -13,22 +13,8 @@ g_default = graph.graph_default('simplified_transport.json')
 def index():
     return app.send_static_file('index.html')
 
-@app.route('/find-light-path', methods=['POST'])
-def find_path():
-    start_lat = request.json.get('start_lat')
-    start_lng = request.json.get('start_lng')
-    end_lat = request.json.get('end_lat')
-    end_lng = request.json.get('end_lng')
-
-    start = graph.get_closest_node(g_light, (start_lng, start_lat))
-    end = graph.get_closest_node(g_light, (end_lng, end_lat))
-
-    path = graph.find_shortest_path(g_light, start, end)
-
-    return jsonify(geojson.Feature(geometry=LineString(path)))
-
-@app.route('/find-default-path', methods=['POST'])
-def find_path():
+@app.route('/find-path', methods=['POST'])
+def find_light_path():
     start_lat = request.json.get('start_lat')
     start_lng = request.json.get('start_lng')
     end_lat = request.json.get('end_lat')
@@ -37,9 +23,13 @@ def find_path():
     start = graph.get_closest_node(g_default, (start_lng, start_lat))
     end = graph.get_closest_node(g_default, (end_lng, end_lat))
 
-    path = graph.find_shortest_path(g_default, start, end)
+    path_light = graph.find_shortest_path(g_light, start, end)
+    path_default = graph.find_shortest_path(g_default, start, end)
 
-    return jsonify(geojson.Feature(geometry=LineString(path)))
+    ret_light = geojson.Feature(geometry=LineString(path_light))
+    ret_default = geojson.Feature(geometry=LineString(path_default))
+
+    return jsonify((ret_light, ret_default))
 
 @app.route('/rate-wijk', methods=['POST'])
 def rate_wijk():

@@ -60,7 +60,7 @@ def graph_default(path):
                 G.add_edge(p1, p2)
     return G
 
-def count_lamp_posts_near_line(line, lamp_posts, lamp_post_index, distance_threshold=0.001):
+def count_lamp_posts_near_line(line, lamp_posts, lamp_post_index, distance_threshold=0.01):
     count = 0
     line = LineString(line)
     minx, miny, maxx, maxy = line.bounds

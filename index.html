@@ -225,13 +225,22 @@
             })
             .then(response => response.json())
             .then(data => {
-                // Clear any existing path
+                // Clear any existing paths
                 if (window.pathLayer) {
                     map.removeLayer(window.pathLayer);
                 }
 
+                window.pathLayer = L.geoJSON(data[0], {
+                    style: function (feature) {
+                        return {
+                            color: 'black',
+                            weight: 4
+                        };
+                    }
+                }).addTo(map);
+
                 // Add the new path
-                window.pathLayer = L.geoJSON(data, {
+                window.pathLayer = L.geoJSON(data[1], {
                     style: function (feature) {
                         return {
                             color: 'red',
