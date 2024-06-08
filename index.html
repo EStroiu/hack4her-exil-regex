@@ -118,8 +118,24 @@
                 return;
             }
 
-            // You can implement pathfinding logic here
-            alert('Start Point: ' + startPoint.lat + ', ' + startPoint.lng + '\nEnd Point: ' + endPoint.lat + ', ' + endPoint.lng);
+            fetch('/find-path', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    startPoint: startPoint,
+                    endPoint: endPoint
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Handle the response from the server
+                alert(data.message);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
         }
 
         // Load the map when the DOM is ready
