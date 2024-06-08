@@ -1,9 +1,58 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Hello World Page</title>
+    <title>Amsterdam Transportation Map</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <style>
+        #map {
+            height: 100vh;
+            width: 100vw;
+            background: white; /* Set background to white */
+        }
+    </style>
 </head>
 <body>
-    <h1>Hello, World!</h1>
+    <div id="map"></div>
+    <script>
+        // Initialize the map
+        var map = L.map('map', {
+            center: [52.3676, 4.9041], // Center map on Amsterdam
+            zoom: 12, // Set initial zoom level
+            layers: [] // No default tile layer
+        });
+
+        // Fetch the GeoJSON data and add it to the map
+        fetch('amsterdam_transportation.geojson')
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(function(data) {
+                var geojsonLayer = L.geoJson(data, {
+                    style: function (feature) {
+                        return {
+                            color: 'blue',
+                            weight: 2
+                        };
+                    },
+                    onEachFeature: function (feature, layer) {
+                        if (feature.properties && feature.properties.name) {
+                            layer.bindPopup(feature.properties.name);
+                        }
+                    }
+                }).addTo(map);
+
+                // Set the map view to the bounds of the GeoJSON layer
+                map.fitBounds(geojsonLayer.getBounds());
+            })
+            .catch(function(error) {
+                console.log('Error loading the GeoJSON data: ', error);
+            });
+    </script>
 </body>
 </html>
