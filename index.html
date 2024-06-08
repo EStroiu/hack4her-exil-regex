@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Amsterdam Transportation Map</title>
+    <title>Amsterdam Map with Multiple Layers</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
@@ -27,7 +27,7 @@
             doubleClickZoom: false // Disable double click zoom
         });
     
-        // Fetch the GeoJSON data and add it to the map
+        // Fetch and add the transportation layer
         fetch('amsterdam_transportation.geojson')
             .then(function(response) {
                 if (!response.ok) {
@@ -36,7 +36,7 @@
                 return response.json();
             })
             .then(function(data) {
-                var geojsonLayer = L.geoJson(data, {
+                var transportationLayer = L.geoJson(data, {
                     style: function (feature) {
                         return {
                             color: 'blue',
@@ -50,11 +50,42 @@
                     }
                 }).addTo(map);
     
-                // Set the map view to the bounds of the GeoJSON layer
-                map.fitBounds(geojsonLayer.getBounds());
+                // Set the map view to the bounds of the transportation layer
+                map.fitBounds(transportationLayer.getBounds());
             })
             .catch(function(error) {
-                console.log('Error loading the GeoJSON data: ', error);
+                console.log('Error loading the transportation GeoJSON data: ', error);
+            });
+        
+        // Fetch and add the street lights layer
+        fetch('amsterdam_street_lights.geojson')
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(function(data) {
+                var streetLightsLayer = L.geoJson(data, {
+                    pointToLayer: function (feature, latlng) {
+                        return L.circleMarker(latlng, {
+                            radius: 5,
+                            fillColor: "yellow",
+                            color: "yellow",
+                            weight: 1,
+                            opacity: 1,
+                            fillOpacity: 0.8
+                        });
+                    },
+                    onEachFeature: function (feature, layer) {
+                        if (feature.properties && feature.properties.name) {
+                            layer.bindPopup(feature.properties.name);
+                        }
+                    }
+                }).addTo(map);
+            })
+            .catch(function(error) {
+                console.log('Error loading the street lights GeoJSON data: ', error);
             });
     </script>
 </body>
