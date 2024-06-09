@@ -7,6 +7,16 @@ import socket
 
 district_ratings = {}
 
+print("Getting lamp posts...")
+lamp_posts = graph.load_lamp_posts('amsterdam_street_lights.geojson')
+lamp_post_index = graph.create_lamp_post_index(lamp_posts)
+print("Computing graphs...")
+districts = graph.load_crime_polygons('amsterdam_wijken_normalized.geojson')
+g_light = graph.graph_light('simplified_transport.json', lamp_posts, lamp_post_index)
+g_default = graph.graph_default('simplified_transport.json')
+g_district = graph.graph_district('simplified_transport.json', districts, district_ratings)
+print("Done!")
+
 print("Starting Flask app...")
 app = Flask(__name__, static_folder='', static_url_path='')
 
@@ -88,16 +98,6 @@ def find_free_port():
         return s.getsockname()[1]
 
 if __name__ == '__main__':
-    print("Getting lamp posts...")
-    lamp_posts = graph.load_lamp_posts('amsterdam_street_lights.geojson')
-    lamp_post_index = graph.create_lamp_post_index(lamp_posts)
-    print("Computing graphs...")
-    districts = graph.load_crime_polygons('amsterdam_wijken_normalized.geojson')
-    g_light = graph.graph_light('simplified_transport.json', lamp_posts, lamp_post_index)
-    g_default = graph.graph_default('simplified_transport.json')
-    g_district = graph.graph_district('simplified_transport.json', districts, district_ratings)
-    print("Done!")
-
     port = find_free_port()
     print(f"Connecting on port {port}...")
     app.run(port=port, debug=False)
