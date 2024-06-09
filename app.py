@@ -3,6 +3,7 @@ import geojson
 from shapely.geometry import LineString, Point
 import graph
 import json
+import socket
 
 district_ratings = {}
 
@@ -80,6 +81,12 @@ def update_district_graph():
     crime_polygons = graph.load_crime_polygons('amsterdam_wijken_normalized.geojson')
     g_district = graph.graph_district('simplified_transport.json', crime_polygons, district_ratings)
 
+def find_free_port():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(('', 0))
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        return s.getsockname()[1]
+
 if __name__ == '__main__':
     print("Getting lamp posts...")
     lamp_posts = graph.load_lamp_posts('amsterdam_street_lights.geojson')
@@ -91,4 +98,6 @@ if __name__ == '__main__':
     g_district = graph.graph_district('simplified_transport.json', districts, district_ratings)
     print("Done!")
 
-    app.run(debug=False)
+    port = find_free_port()
+    print(f"Connecting on port {port}...")
+    app.run(port=port, debug=False)
