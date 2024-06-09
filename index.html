@@ -315,12 +315,12 @@
                         streetLightsLayer = L.geoJSON(data, {
                             pointToLayer: function (feature, latlng) {
                                 return L.circleMarker(latlng, {
-                                    radius: 3,
+                                    radius: 2,
                                     fillColor: 'yellow',
                                     color: 'yellow',
                                     weight: 1,
                                     opacity: 1,
-                                    fillOpacity: 0.8
+                                    fillOpacity: 0.6
                                 });
                             }
                         }).addTo(map);
@@ -342,8 +342,13 @@
                     .then(data => {
                         wijkenPolygonsLayer = L.geoJSON(data, {
                             onEachFeature: function (feature, layer) {
+                                
                                 if (feature.properties && feature.properties.Wijk && feature.properties.CriminalityScore) {
                                     var popupContent = '<strong>Wijk:</strong> ' + feature.properties.Wijk + '<br><strong>Criminality Score:</strong> ' + feature.properties.CriminalityScore.toFixed(4);
+                                    
+                                    var wijkAvg = fetchWijkAvg(feature.properties.Wijk);
+
+                                    popupContent += '<br><strong>Community Score Average:</strong> ' + wijkAvg;
                                     popupContent += '<br><strong>How safe is this Wijk:</strong> <select id="rating-' + feature.properties.Wijk + '">';
                                     for (var i = 1; i <= 10; i++) {
                                         popupContent += '<option value="' + i + '">' + i + '</option>';
@@ -368,7 +373,35 @@
             }
         }
 
-        // Load the map when the DOM is ready
+        function fetchWijkAvg(wijk) {
+            const xhr = new XMLHttpRequest();
+
+            xhr.open('GET', 'district_ratings.json', false);
+            
+            xhr.send(null);
+
+            if (xhr.status === 200) {
+                const data = JSON.parse(xhr.responseText);
+                
+                if (data[wijk]) {
+                    sum = 0;
+                    for (var i = 0; i < data[wijk].length; i++) {
+                        console.log('Rating:', data[wijk][i]);
+                        sum = sum + Number(data[wijk][i]);
+                    }
+                    wijkAvg = sum / data[wijk].length;
+                    console.log('Wijk Average:', wijkAvg);
+                    return wijkAvg;
+                } else {
+                    console.log('Wijk not found');
+                    return 'None';
+                }
+            } else {
+                console.error('Error fetching data:', xhr.statusText);
+                return 'None';
+            }
+        }
+                // Load the map when the DOM is ready
         document.addEventListener('DOMContentLoaded', function () {
             initMap();
         });
