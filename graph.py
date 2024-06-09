@@ -11,8 +11,7 @@ def load_lamp_posts(path):
         data = geojson.load(file)
     lamp_posts = []
     for feature in data['features']:
-        if feature['geometry']['type'] == 'Point':
-            lamp_posts.append(tuple(feature['geometry']['coordinates']))
+        lamp_posts.append(tuple(feature['geometry']['coordinates']))
     return lamp_posts
 
 def load_crime_polygons(path):
@@ -20,11 +19,10 @@ def load_crime_polygons(path):
         data = geojson.load(file)
     crime_polygons = []
     for feature in data['features']:
-        if feature['geometry']['type'] == 'Polygon':
-            polygon = shape(feature['geometry'])
-            crime_rate = feature['properties'].get('CriminalityScore', 0)
-            district = feature['properties'].get('district', '')  
-            crime_polygons.append((polygon, crime_rate, district))
+        polygon = shape(feature['geometry'])
+        crime_rate = feature['properties'].get('CriminalityScore', 0)
+        district = feature['properties'].get('district', '')  
+        crime_polygons.append((polygon, crime_rate, district))
     return crime_polygons
 
 def create_lamp_post_index(lamp_posts):
@@ -79,7 +77,6 @@ def graph_district(path, districts, district_ratings):
                 adjusted_distance = distance * math.exp(k * crime_rate)
                 
                 G.add_edge(p1, p2, weight=adjusted_distance)
-    print("Done!")
     return G
 
 def build_spatial_index(crime_polygons):
@@ -104,7 +101,7 @@ def get_crime_rate_for_line(line, crime_polygons, district_idx, district_ratings
                 avg_rating = sum(district_ratings[district]) / len(district_ratings[district])
                 # Adjust crime rate based on the average rating (scale rating to be between 0 and 1)
                 adjusted_crime_rate = crime_rate * (1 - (avg_rating / 10))
-            total_crime_rate += adjusted_crime_rate
+            total_crime_rate -= adjusted_crime_rate
             count += 1
 
     return total_crime_rate / count if count > 0 else 0
