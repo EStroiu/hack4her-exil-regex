@@ -2,11 +2,33 @@ from flask import Flask, jsonify, request
 import geojson 
 from shapely.geometry import LineString, Point
 import graph
+import json
 
 district_ratings = {}
 
 print("Starting Flask app...")
 app = Flask(__name__, static_folder='', static_url_path='')
+
+def load_district_ratings(filepath):
+    try:
+        with open(filepath, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {}
+
+def save_district_ratings(filepath, ratings):
+    with open(filepath, 'w') as f:
+        json.dump(ratings, f, indent=4)
+
+district_ratings_file = 'district_ratings.json'
+district_ratings = load_district_ratings(district_ratings_file)
+
+districts = graph.load_crime_polygons('amsterdam_wijken_normalized.geojson')
+district_idx = graph.build_spatial_index(districts)
+
+def update_district_graph():
+    global g_district
+    g_district = graph.graph_district('simplified_transport.json', districts, district_idx, district_ratings)
 
 @app.route('/')
 def index():
@@ -42,7 +64,13 @@ def rate_wijk():
     if wijk not in district_ratings:
         district_ratings[wijk] = []
     district_ratings[wijk].append(rating)
-    
+
+    new_ratings = [int(r) for r in district_ratings[wijk]]
+    new_avg = sum(new_ratings) / len(new_ratings)
+    print(new_avg)
+
+    save_district_ratings(district_ratings_file, district_ratings)
+
     update_district_graph()
 
     return jsonify({"message": "Rating submitted successfully"})
