@@ -1,9 +1,5 @@
 # hack4her-exil-regex
 
-# TODO:
-- Dependencies
-- Loading Screen
-
 # Backend
 - Hosted using Flask ```app.py```
 - Path finding done using networkx
