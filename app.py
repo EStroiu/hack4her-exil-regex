@@ -3,13 +3,10 @@ import geojson
 from shapely.geometry import LineString, Point
 import graph
 
+district_ratings = {}
+
+print("Starting Flask app...")
 app = Flask(__name__, static_folder='', static_url_path='')
-lamp_posts = graph.load_lamp_posts('amsterdam_street_lights.geojson')
-lamp_post_index = graph.create_lamp_post_index(lamp_posts)
-districts = graph.load_crime_polygons('amsterdam_wijken_normalized.geojson')
-g_light = graph.graph_light('simplified_transport.json', lamp_posts, lamp_post_index)
-g_default = graph.graph_default('simplified_transport.json')
-g_district = graph.graph_district('simplified_transport.json', districts)
 
 @app.route('/')
 def index():
@@ -40,11 +37,30 @@ def rate_wijk():
     wijk = request.json.get('wijk')
     rating = request.json.get('rating')
 
-    # Process the rating (e.g., store it in a database or file)
-    # For now, we'll just print it
     print(f"Received rating for {wijk}: {rating}")
+
+    if wijk not in district_ratings:
+        district_ratings[wijk] = []
+    district_ratings[wijk].append(rating)
+    
+    update_district_graph()
 
     return jsonify({"message": "Rating submitted successfully"})
 
+def update_district_graph():
+    global g_district
+    crime_polygons = graph.load_crime_polygons('amsterdam_wijken_normalized.geojson')
+    g_district = graph.graph_district('simplified_transport.json', crime_polygons, district_ratings)
+
 if __name__ == '__main__':
-    app.run(port=5001, debug=True)
+    print("Getting lamp posts...")
+    lamp_posts = graph.load_lamp_posts('amsterdam_street_lights.geojson')
+    lamp_post_index = graph.create_lamp_post_index(lamp_posts)
+    print("Computing graphs...")
+    districts = graph.load_crime_polygons('amsterdam_wijken_normalized.geojson')
+    g_light = graph.graph_light('simplified_transport.json', lamp_posts, lamp_post_index)
+    g_default = graph.graph_default('simplified_transport.json')
+    g_district = graph.graph_district('simplified_transport.json', districts, district_ratings)
+    print("Done!")
+
+    app.run(debug=False)

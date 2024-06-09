@@ -4,6 +4,7 @@ import geojson
 from geojson import dump
 from shapely.ops import nearest_points
 from rtree import index
+import math
 
 def load_lamp_posts(path):
     with open(path) as file:
@@ -22,7 +23,8 @@ def load_crime_polygons(path):
         if feature['geometry']['type'] == 'Polygon':
             polygon = shape(feature['geometry'])
             crime_rate = feature['properties'].get('CriminalityScore', 0)
-            crime_polygons.append((polygon, crime_rate))
+            district = feature['properties'].get('district', '')  
+            crime_polygons.append((polygon, crime_rate, district))
     return crime_polygons
 
 def create_lamp_post_index(lamp_posts):
@@ -32,6 +34,7 @@ def create_lamp_post_index(lamp_posts):
     return idx
 
 def graph_light(path, lamp_posts, lamp_post_index):
+    print("Creating light graph...")
     with open(path) as file:
         data = geojson.load(file)
 
@@ -53,18 +56,14 @@ def graph_light(path, lamp_posts, lamp_post_index):
                 G.add_edge(p1, p2, weight=adjusted_distance)
     return G
 
-def get_crime_rate_for_line(line, crime_polygons):
-    line = LineString(line)
-    for polygon, crime_rate in crime_polygons:
-        if polygon.intersects(line):
-            return crime_rate
-    return 0
-
-def graph_district(path, districts): 
+def graph_district(path, districts, district_ratings):
+    print("Creating criminality graph...")
     with open(path) as file:
         data = geojson.load(file)
 
     G = nx.Graph()
+    k = 5
+    district_idx = build_spatial_index(districts)
 
     for feature in data['geometries']:
         if feature['type'] == 'LineString':
@@ -74,15 +73,44 @@ def graph_district(path, districts):
                 p2 = tuple(coords[i + 1])
                 line_segment = [p1, p2]
                 distance = Point(p1).distance(Point(p2))
-                crime_rate = get_crime_rate_for_line(line_segment, districts)
+                crime_rate = get_crime_rate_for_line(line_segment, districts, district_idx, district_ratings)
 
-                # heuristic
-                adjusted_distance = distance * (1 + crime_rate)
+                # heuristic with exponential growth
+                adjusted_distance = distance * math.exp(k * crime_rate)
                 
                 G.add_edge(p1, p2, weight=adjusted_distance)
+    print("Done!")
     return G
 
+def build_spatial_index(crime_polygons):
+    idx = index.Index()
+    for i, (polygon, crime_rate, district) in enumerate(crime_polygons):
+        idx.insert(i, polygon.bounds)
+    return idx
+
+def get_crime_rate_for_line(line, crime_polygons, district_idx, district_ratings):
+    line = LineString(line)
+    total_crime_rate = 0
+    count = 0
+
+    # Get potential intersecting polygons using spatial index
+    possible_matches = list(district_idx.intersection(line.bounds))
+    
+    for idx in possible_matches:
+        polygon, crime_rate, district = crime_polygons[idx]
+        if polygon.intersects(line):
+            adjusted_crime_rate = crime_rate
+            if district in district_ratings:
+                avg_rating = sum(district_ratings[district]) / len(district_ratings[district])
+                # Adjust crime rate based on the average rating (scale rating to be between 0 and 1)
+                adjusted_crime_rate = crime_rate * (1 - (avg_rating / 10))
+            total_crime_rate += adjusted_crime_rate
+            count += 1
+
+    return total_crime_rate / count if count > 0 else 0
+
 def graph_default(path):
+    print("Creating default graph...")
     with open(path) as file:
         data = geojson.load(file)
 
