@@ -37,6 +37,23 @@
             height: 120px;
             animation: spin 2s linear infinite;
         }
+
+        #legend {
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 5px;
+        }
+        
+
+        .legend-color {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -53,10 +70,13 @@
                 <h3>Evil Regex Safe Path</h3>
             </div>
         </div>
-        <div class="row mt-4">
-            <div class="col">
-                <p id="coordinates"></p>
+        <div class="row mt-5">
+            <div class="col-5">
+                <span id="coordinates" class="legend-color"></span>
             </div>
+                <div class="col-2"><span class="legend-color" style="background-color: red;"></span>Shortest Path</div>
+                <div class="col-2"><span class="legend-color" style="background-color: black;"></span>Most Lights</div>
+                <div class="col-2"><span class="legend-color" style="background-color: blue;"></span>Safest Path</div>
         </div>
         <div class="row mt-4">
             <div class="col">
@@ -65,10 +85,10 @@
         </div>
         <div class="row mt-4">
             <div class="col">
-                <p>Start Point: <span id="startPointDisplay">Not set</span></p>
+                <p>Start: <span id="startPointDisplay"></span></p>
             </div>
             <div class="col">
-                <p>End Point: <span id="endPointDisplay">Not set</span></p>
+                <p>End: <span id="endPointDisplay"></span></p>
             </div>
             <div class="col">
                 <button class="btn btn-primary" id="startButton" onclick="startPath()">Set Start Point</button>
